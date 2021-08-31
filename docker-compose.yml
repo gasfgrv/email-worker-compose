@@ -51,12 +51,12 @@ services:
     networks: 
       - fila
   worker:
-    image: python:3.6
+    build: worker # Procura por um dockerfile em vez de uma imagem pronta
     volumes: 
-      # Worker
+      # Worker 
       - ./worker:/worker
     working_dir: /worker
-    command: bash ./app.sh
+    command: worker.py
     networks: 
       - fila
     depends_on: 

@@ -1,0 +1,45 @@
+version: '3'
+volumes: 
+  dados:
+networks: 
+  banco:
+  web:
+services: 
+  db:
+    image: postgres:9.6
+    # Variáveis de ambiente
+    environment: 
+      POSTGRES_HOST_AUTH_METHOD: "trust" # Não é recomendado deixar a configuração desse jeito
+    volumes:
+      # Volume dos dados
+      - dados:/var/lib/postgresql/data
+      # Scripts
+      - ./scripts:/scripts
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: 
+      - banco
+  frontend:
+    image: nginx:1.13
+    volumes: 
+      # Site
+      - ./web:/usr/share/nginx/html
+      # Configuração do proxy reverso
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports: 
+      - 80:80
+    networks: 
+      - web
+    depends_on: # "dependências" do serviço, nesse o frontend só sobe quando o app estiver funcionando
+      - app
+  app:
+    image: python:3.6
+    volumes: 
+      # Aplicação
+      - ./app:/app
+    working_dir: /app # Dentro do container
+    command: bash ./app.sh
+    networks: 
+      - banco
+      - web
+    depends_on: 
+      - db
